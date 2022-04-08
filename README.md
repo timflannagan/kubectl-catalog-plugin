@@ -106,10 +106,36 @@ Handling connection for 50051
 
 > Note: Before proceeding with the following commands, ensure that [OLM](https://github.com/operator-framework/operator-lifecycle-manager/) is installed on your cluster.
 
-Create the requisite OperatorGroup and Subscriptions resources in the `test-fbc` namespace:
+Create the requisite OperatorGroup and Subscriptions YAML manifests in the `test-fbc` namespace:
+
+> Note: expand the details tab for to easily copy and paste the resource YAML manifests.
+
+<details>
+
+```yaml
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: test-fbc
+  namespace: test-fbc
+spec: {}
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: test-fbc
+  namespace: test-fbc
+spec:
+  source: magiccatalog
+  sourceNamespace: test-fbc
+  channel: stable
+  name: packageA
+```
+
+</details>
 
 ```console
-$ cat <<EOF | kubectl create -f -
+cat <<EOF | kubectl create -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -128,6 +154,7 @@ spec:
   channel: stable
   name: packageA
 EOF
+```
 
 After creating those OLM resources, wait until the example-operator.v0.1.0 ClusterServiceVersion (CSV) resource has been generated, and that resources is reporting a successful installation state:
 
