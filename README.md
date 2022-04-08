@@ -1,0 +1,1 @@
+# kubectl-magic-catalog-plugin
