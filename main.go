@@ -16,11 +16,15 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type options struct {
+	namespace   string
+	catalogName string
+	client      client.Client
+}
+
 func main() {
-	var (
-		ns          string
-		catalogName string
-	)
+	o := &options{}
+
 	rootCmd := &cobra.Command{
 		Use: "catalog",
 	}
@@ -38,38 +42,21 @@ a Operator installation using OLM.
 				return err
 			}
 
-			scheme := runtime.NewScheme()
-			if err := operatorsv1alpha1.AddToScheme(scheme); err != nil {
-				return err
-			}
-			if err := appsv1.AddToScheme(scheme); err != nil {
-				return err
-			}
-			if err := corev1.AddToScheme(scheme); err != nil {
-				return err
-			}
-
-			config := ctrl.GetConfigOrDie()
-			client, err := client.New(config, client.Options{
-				Scheme: scheme,
-			})
-			if err != nil {
-				return err
-			}
-
 			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 			defer cancel()
 
-			magicCatalog := e2e.NewMagicCatalog(client, ns, catalogName, provider)
-			if err := magicCatalog.DeployCatalog(ctx); err != nil {
+			if err := o.commonSetup(); err != nil {
+				return err
+			}
+			if err := o.run(ctx, provider); err != nil {
 				return err
 			}
 
 			return nil
 		},
 	}
-	cmd.Flags().StringVar(&ns, "namespace", "default", "Configures the namespace to find the Bundle underlying resources")
-	cmd.Flags().StringVar(&catalogName, "catalog-name", "magiccatalog", "Configures the metadata.Name for the generated ConfigMap resource")
+	cmd.Flags().StringVar(&o.namespace, "namespace", "default", "Configures the namespace to find the Bundle underlying resources")
+	cmd.Flags().StringVar(&o.catalogName, "catalog-name", "magiccatalog", "Configures the metadata.Name for the generated ConfigMap resource")
 
 	rootCmd.AddCommand(cmd)
 
@@ -77,4 +64,36 @@ a Operator installation using OLM.
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func (o *options) commonSetup() error {
+	scheme := runtime.NewScheme()
+	if err := operatorsv1alpha1.AddToScheme(scheme); err != nil {
+		return err
+	}
+	if err := appsv1.AddToScheme(scheme); err != nil {
+		return err
+	}
+	if err := corev1.AddToScheme(scheme); err != nil {
+		return err
+	}
+
+	config := ctrl.GetConfigOrDie()
+	client, err := client.New(config, client.Options{
+		Scheme: scheme,
+	})
+	if err != nil {
+		return err
+	}
+	o.client = client
+
+	return nil
+}
+
+func (o *options) run(ctx context.Context, provider e2e.FileBasedCatalogProvider) error {
+	magicCatalog := e2e.NewMagicCatalog(o.client, o.namespace, o.catalogName, provider)
+	if err := magicCatalog.DeployCatalog(ctx); err != nil {
+		return err
+	}
+	return nil
 }
