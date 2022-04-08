@@ -290,7 +290,7 @@ func (c *magicCatalog) makeCatalogSourcePod() *corev1.Pod {
 					SecurityContext: &corev1.SecurityContext{
 						ReadOnlyRootFilesystem: &readOnlyRootFilesystem,
 					},
-					ImagePullPolicy:          corev1.PullAlways,
+					ImagePullPolicy:          corev1.PullIfNotPresent,
 					TerminationMessagePolicy: corev1.TerminationMessageFallbackToLogsOnError,
 					VolumeMounts: []corev1.VolumeMount{
 						{
