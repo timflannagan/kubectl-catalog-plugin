@@ -31,3 +31,17 @@ func NewFileBasedFiledBasedCatalogProvider(path string) (FileBasedCatalogProvide
 func (f *fileBasedFileBasedCatalogProvider) GetCatalog() string {
 	return f.fbc
 }
+
+type stringBasedFileBasedCatalogProvider struct {
+	fbc string
+}
+
+func NewStringBasedFiledBasedCatalogProvider(input string) (FileBasedCatalogProvider, error) {
+	return &fileBasedFileBasedCatalogProvider{
+		fbc: input,
+	}, nil
+}
+
+func (f *stringBasedFileBasedCatalogProvider) GetCatalog() string {
+	return f.fbc
+}
