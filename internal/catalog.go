@@ -9,6 +9,7 @@ import (
 	k8serror "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	k8scontrollerclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -22,6 +23,7 @@ const (
 
 type MagicCatalog interface {
 	DeployCatalog(ctx context.Context) error
+	UpdateCatalog(ctx context.Context, provider FileBasedCatalogProvider) error
 	UndeployCatalog(ctx context.Context) []error
 }
 
@@ -92,6 +94,45 @@ func (c *magicCatalog) deployCatalog(ctx context.Context, resources []k8scontrol
 			return c.cleanUpAfter(ctx, err)
 		}
 	}
+	return nil
+}
+
+func (c *magicCatalog) UpdateCatalog(ctx context.Context, provider FileBasedCatalogProvider) error {
+	resourcesInOrderOfDeletion := []k8scontrollerclient.Object{
+		c.makeCatalogSourcePod(),
+		c.makeConfigMap(),
+	}
+	errors := c.undeployCatalog(ctx, resourcesInOrderOfDeletion)
+	if len(errors) != 0 {
+		return utilerrors.NewAggregate(errors)
+	}
+
+	// TODO(tflannag): Create a pod watcher struct and setup an underlying watch
+	// and block until ctx.Done()?
+	err := waitFor(func() (bool, error) {
+		pod := &corev1.Pod{}
+		err := c.kubeClient.Get(ctx, k8scontrollerclient.ObjectKey{
+			Name:      c.podName,
+			Namespace: c.namespace,
+		}, pod)
+		if k8serror.IsNotFound(err) {
+			return true, nil
+		}
+		return false, err
+	})
+	if err != nil {
+		return fmt.Errorf("failed to successfully update the catalog deployment: %v", err)
+	}
+
+	c.fileBasedCatalog = provider
+	resourcesInOrderOfCreation := []k8scontrollerclient.Object{
+		c.makeConfigMap(),
+		c.makeCatalogSourcePod(),
+	}
+	if err := c.deployCatalog(ctx, resourcesInOrderOfCreation); err != nil {
+		return err
+	}
+
 	return nil
 }
 
