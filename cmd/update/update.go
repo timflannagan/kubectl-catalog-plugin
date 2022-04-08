@@ -29,7 +29,7 @@ func NewCmd() *cobra.Command {
 				return err
 			}
 			magicCatalog := catalog.NewMagicCatalog(o.Client, o.Namespace, o.CatalogName, provider)
-			if err := magicCatalog.DeployCatalog(ctx); err != nil {
+			if err := magicCatalog.UpdateCatalog(ctx, provider); err != nil {
 				return err
 			}
 
