@@ -50,7 +50,6 @@ func NewMagicCatalog(kubeClient k8scontrollerclient.Client, namespace string, ca
 }
 
 func (c *magicCatalog) DeployCatalog(ctx context.Context) error {
-
 	catalogSource := c.makeCatalogSource()
 	resourcesInOrderOfDeployment := []k8scontrollerclient.Object{
 		c.makeConfigMap(),
@@ -58,12 +57,8 @@ func (c *magicCatalog) DeployCatalog(ctx context.Context) error {
 		c.makeCatalogService(),
 		catalogSource,
 	}
-
-	for _, res := range resourcesInOrderOfDeployment {
-		err := c.kubeClient.Create(ctx, res)
-		if err != nil {
-			return c.cleanUpAfter(ctx, err)
-		}
+	if err := c.deployCatalog(ctx, resourcesInOrderOfDeployment); err != nil {
+		return err
 	}
 
 	// wait for catalog source to become ready
@@ -78,14 +73,11 @@ func (c *magicCatalog) DeployCatalog(ctx context.Context) error {
 		}
 
 		state := catalogSource.Status.GRPCConnectionState.LastObservedState
-
 		if state != catalogReadyState {
 			return false, nil
-		} else {
-			return true, nil
 		}
+		return true, nil
 	})
-
 	if err != nil {
 		return c.cleanUpAfter(ctx, err)
 	}
@@ -93,31 +85,42 @@ func (c *magicCatalog) DeployCatalog(ctx context.Context) error {
 	return nil
 }
 
-func (c *magicCatalog) UndeployCatalog(ctx context.Context) []error {
-	var errs []error = nil
+func (c *magicCatalog) deployCatalog(ctx context.Context, resources []k8scontrollerclient.Object) error {
+	for _, res := range resources {
+		err := c.kubeClient.Create(ctx, res)
+		if err != nil {
+			return c.cleanUpAfter(ctx, err)
+		}
+	}
+	return nil
+}
 
+func (c *magicCatalog) UndeployCatalog(ctx context.Context) []error {
 	resourcesInOrderOfDeletion := []k8scontrollerclient.Object{
 		c.makeCatalogSource(),
 		c.makeCatalogService(),
 		c.makeCatalogSourcePod(),
 		c.makeConfigMap(),
 	}
+	return c.undeployCatalog(ctx, resourcesInOrderOfDeletion)
+}
 
+func (c *magicCatalog) undeployCatalog(ctx context.Context, resources []k8scontrollerclient.Object) []error {
+	var errors []error
 	// try to delete all resourcesInOrderOfDeletion even if errors are
 	// encountered through deletion.
-	for _, res := range resourcesInOrderOfDeletion {
+	for _, res := range resources {
 		err := c.kubeClient.Delete(ctx, res)
 
 		// ignore not found errors
 		if err != nil && !k8serror.IsNotFound(err) {
-			if errs == nil {
-				errs = make([]error, 0)
+			if errors == nil {
+				errors = make([]error, 0)
 			}
-			errs = append(errs, err)
+			errors = append(errors, err)
 		}
 	}
-
-	return errs
+	return errors
 }
 
 func (c *magicCatalog) cleanUpAfter(ctx context.Context, err error) error {
