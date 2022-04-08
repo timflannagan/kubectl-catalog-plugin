@@ -21,12 +21,14 @@ func main() {
 		ns          string
 		catalogName string
 	)
+	rootCmd := &cobra.Command{
+		Use: "catalog",
+	}
 	cmd := &cobra.Command{
-		Use:   "evaluate",
+		Use:   "create",
 		Args:  cobra.ExactArgs(1),
 		Short: "Instantiate a file-based catalog (FBC) out of thin air",
-		Long: `
-A kubectl plugin that's responsible for taking an input FBC YAML or JSON file, and creating
+		Long: `A kubectl plugin that's responsible for taking an input FBC YAML or JSON file, and creating
 a Operator installation using OLM.
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -69,7 +71,9 @@ a Operator installation using OLM.
 	cmd.Flags().StringVar(&ns, "namespace", "default", "Configures the namespace to find the Bundle underlying resources")
 	cmd.Flags().StringVar(&catalogName, "catalog-name", "magiccatalog", "Configures the metadata.Name for the generated ConfigMap resource")
 
-	if err := cmd.Execute(); err != nil {
+	rootCmd.AddCommand(cmd)
+
+	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}

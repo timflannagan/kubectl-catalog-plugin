@@ -1,11 +1,11 @@
 SHELL := /bin/bash
 
-OUTPUT_BIN ?= bin/kubectl-catalog-evaluate
+OUTPUT_BIN ?= bin/kubectl-catalog
 
-.PHONY: bin/evaluate
-bin/evaluate:
+.PHONY: bin/create
+bin/create:
 	@go build -o $(OUTPUT_BIN) main.go
 
-plugin: bin/evaluate
+plugin: bin/create
 	@sudo cp $(OUTPUT_BIN) /usr/local/bin
-	@kubectl catalog evaluate --help > /dev/null || (echo "failed to find the custom plugin in kubectl plugin path"; exit 1)
+	@kubectl catalog --help > /dev/null || (echo "failed to find the custom plugin in kubectl plugin path"; exit 1)
