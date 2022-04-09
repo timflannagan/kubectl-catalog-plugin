@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/timflannagan/kubectl-catalog-plugin/cmd/util"
-	catalog "github.com/timflannagan/kubectl-catalog-plugin/internal"
+	catalog "github.com/timflannagan/kubectl-catalog-plugin/internal/catalog"
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 )
 

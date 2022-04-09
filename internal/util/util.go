@@ -1,4 +1,4 @@
-package catalog
+package util
 
 import (
 	"time"
@@ -6,8 +6,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 )
 
-// waitFor wraps wait.Pool with default polling parameters
-func waitFor(fn func() (bool, error)) error {
+// WaitFor wraps wait.Pool with default polling parameters
+func WaitFor(fn func() (bool, error)) error {
 	return wait.Poll(1*time.Second, 5*time.Minute, func() (bool, error) {
 		return fn()
 	})

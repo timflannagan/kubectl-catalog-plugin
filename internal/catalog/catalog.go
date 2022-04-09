@@ -12,6 +12,8 @@ import (
 	utilerrors "k8s.io/apimachinery/pkg/util/errors"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	k8scontrollerclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	"github.com/timflannagan/kubectl-catalog-plugin/internal/util"
 )
 
 const (
@@ -71,7 +73,7 @@ func (c *magicCatalog) DeployCatalog(ctx context.Context) error {
 
 func catalogSourceIsReady(ctx context.Context, c k8scontrollerclient.Client, cs *operatorsv1alpha1.CatalogSource) error {
 	// wait for catalog source to become ready
-	return waitFor(func() (bool, error) {
+	return util.WaitFor(func() (bool, error) {
 		err := c.Get(ctx, k8scontrollerclient.ObjectKey{
 			Name:      cs.GetName(),
 			Namespace: cs.GetNamespace(),
@@ -109,7 +111,7 @@ func (c *magicCatalog) UpdateCatalog(ctx context.Context, provider FileBasedCata
 
 	// TODO(tflannag): Create a pod watcher struct and setup an underlying watch
 	// and block until ctx.Done()?
-	err := waitFor(func() (bool, error) {
+	err := util.WaitFor(func() (bool, error) {
 		pod := &corev1.Pod{}
 		err := c.kubeClient.Get(ctx, k8scontrollerclient.ObjectKey{
 			Name:      c.podName,
