@@ -1,4 +1,4 @@
-module github.com/timflannagan/kubectl-magic-catalog-plugin
+module github.com/timflannagan/kubectl-catalog-plugin
 
 go 1.17
 

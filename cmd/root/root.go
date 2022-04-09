@@ -2,9 +2,9 @@ package root
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/timflannagan/kubectl-magic-catalog-plugin/cmd/create"
-	"github.com/timflannagan/kubectl-magic-catalog-plugin/cmd/delete"
-	"github.com/timflannagan/kubectl-magic-catalog-plugin/cmd/update"
+	"github.com/timflannagan/kubectl-catalog-plugin/cmd/create"
+	"github.com/timflannagan/kubectl-catalog-plugin/cmd/delete"
+	"github.com/timflannagan/kubectl-catalog-plugin/cmd/update"
 )
 
 func NewCmd() *cobra.Command {

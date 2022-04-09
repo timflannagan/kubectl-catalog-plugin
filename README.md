@@ -6,7 +6,7 @@ An expiremental kubectl custom plugin for interacting with OLM's newest file-bas
 
 ### Pre-requisites
 
-- Clone the repository: `gh repo clone timflannagan/kubectl-magic-catalog-plugin`
+- Clone the repository: `gh repo clone timflannagan/kubectl-catalog-plugin`
 - Install the kubectl plugin locally: `make plugin`
 
 ### Verifying the installation

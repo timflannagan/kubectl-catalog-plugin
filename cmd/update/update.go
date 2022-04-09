@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/timflannagan/kubectl-magic-catalog-plugin/cmd/util"
-	catalog "github.com/timflannagan/kubectl-magic-catalog-plugin/internal"
+	"github.com/timflannagan/kubectl-catalog-plugin/cmd/util"
+	catalog "github.com/timflannagan/kubectl-catalog-plugin/internal"
 )
 
 func NewCmd() *cobra.Command {

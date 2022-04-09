@@ -133,6 +133,8 @@ func (c *magicCatalog) UpdateCatalog(ctx context.Context, provider FileBasedCata
 		return err
 	}
 
+	// TODO: wait for catalogsource to report healthy state
+
 	return nil
 }
 

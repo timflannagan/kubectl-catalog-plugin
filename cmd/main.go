@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/timflannagan/kubectl-magic-catalog-plugin/cmd/root"
+	"github.com/timflannagan/kubectl-catalog-plugin/cmd/root"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
