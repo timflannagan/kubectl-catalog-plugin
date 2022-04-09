@@ -62,29 +62,29 @@ func (c *magicCatalog) DeployCatalog(ctx context.Context) error {
 	if err := c.deployCatalog(ctx, resourcesInOrderOfDeployment); err != nil {
 		return err
 	}
+	if err := catalogSourceIsReady(ctx, c.kubeClient, catalogSource); err != nil {
+		return c.cleanUpAfter(ctx, err)
+	}
 
+	return nil
+}
+
+func catalogSourceIsReady(ctx context.Context, c k8scontrollerclient.Client, cs *operatorsv1alpha1.CatalogSource) error {
 	// wait for catalog source to become ready
-	err := waitFor(func() (bool, error) {
-		err := c.kubeClient.Get(ctx, k8scontrollerclient.ObjectKey{
-			Name:      catalogSource.GetName(),
-			Namespace: catalogSource.GetNamespace(),
-		}, catalogSource)
-
-		if err != nil || catalogSource.Status.GRPCConnectionState == nil {
+	return waitFor(func() (bool, error) {
+		err := c.Get(ctx, k8scontrollerclient.ObjectKey{
+			Name:      cs.GetName(),
+			Namespace: cs.GetNamespace(),
+		}, cs)
+		if err != nil || cs.Status.GRPCConnectionState == nil {
 			return false, err
 		}
-
-		state := catalogSource.Status.GRPCConnectionState.LastObservedState
+		state := cs.Status.GRPCConnectionState.LastObservedState
 		if state != catalogReadyState {
 			return false, nil
 		}
 		return true, nil
 	})
-	if err != nil {
-		return c.cleanUpAfter(ctx, err)
-	}
-
-	return nil
 }
 
 func (c *magicCatalog) deployCatalog(ctx context.Context, resources []k8scontrollerclient.Object) error {
@@ -132,8 +132,9 @@ func (c *magicCatalog) UpdateCatalog(ctx context.Context, provider FileBasedCata
 	if err := c.deployCatalog(ctx, resourcesInOrderOfCreation); err != nil {
 		return err
 	}
-
-	// TODO: wait for catalogsource to report healthy state
+	if err := catalogSourceIsReady(ctx, c.kubeClient, c.makeCatalogSource()); err != nil {
+		return c.cleanUpAfter(ctx, err)
+	}
 
 	return nil
 }
