@@ -13,7 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/intstr"
 	k8scontrollerclient "sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/timflannagan/kubectl-catalog-plugin/internal/util"
+	"github.com/timflannagan/kubectl-catalog-plugin/pkg/util"
 )
 
 const (
